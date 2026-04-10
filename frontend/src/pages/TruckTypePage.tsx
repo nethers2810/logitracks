@@ -1,0 +1,1 @@
+export { TruckTypePage } from './ListPages';
