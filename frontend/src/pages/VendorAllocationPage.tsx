@@ -1,0 +1,1 @@
+export { VendorAllocationPage } from './ListPages';

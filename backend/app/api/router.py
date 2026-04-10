@@ -3,6 +3,11 @@ from fastapi import APIRouter
 from app.api.routers.auth import router as auth_router
 from app.api.routers.dashboard import router as dashboard_router
 from app.api.routers.health import router as health_router
+from app.api.routers.data import router as data_router
+
+api_router = APIRouter()
+api_router.include_router(health_router, tags=["health"])
+api_router.include_router(data_router, tags=["data"])
 from app.api.routers.master import router as master_router
 from app.api.routers.orders import router as orders_router
 
