@@ -1,3 +1,5 @@
+import sys
+from pathlib import Path
 from pathlib import Path
 import sys
 from logging.config import fileConfig
@@ -5,6 +7,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+# Ensure backend project root is importable when alembic runs from non-project CWD.
 # Ensure the backend project root is importable when Alembic is invoked as a console script.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
