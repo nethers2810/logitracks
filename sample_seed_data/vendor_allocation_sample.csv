@@ -1,0 +1,3 @@
+ship_to_code,customer_code,city,zone,region,route_code,truck_code,priority_no,is_active,notes
+SHP001,CUST001,Quezon,North,NCR,R001,6W,1,true,Primary lane
+SHP002,CUST002,Pasig,East,NCR,R002,10W,1,true,Priority truck
