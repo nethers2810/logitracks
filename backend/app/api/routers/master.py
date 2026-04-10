@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_db, require_roles
 from app.schemas.common import PaginationMeta
 from app.schemas.master import (
     CustomerCreate,
@@ -45,7 +45,7 @@ from app.db.models.master import (
     VendorLaneAllocation,
 )
 
-router = APIRouter(prefix="/master")
+router = APIRouter(prefix="/master", dependencies=[Depends(require_roles("admin", "planner", "analyst"))])
 
 SERVICES = {
     "products": CRUDService(Product, "product_id", ["sku_code", "product_name", "category_name"], ["sku_code"]),
@@ -71,7 +71,7 @@ def list_products(page: int = 1, page_size: int = 20, sort_by: str | None = None
 
 
 @router.post("/products", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
-def create_product(payload: ProductCreate, db: Session = Depends(get_db)):
+def create_product(payload: ProductCreate, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
     return SERVICES["products"].create(db, payload.model_dump())
 
 
@@ -81,12 +81,12 @@ def get_product(entity_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/products/{entity_id}", response_model=ProductRead)
-def update_product(entity_id: int, payload: ProductUpdate, db: Session = Depends(get_db)):
+def update_product(entity_id: int, payload: ProductUpdate, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
     return SERVICES["products"].update(db, entity_id, payload.model_dump(exclude_unset=True))
 
 
 @router.delete("/products/{entity_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(entity_id: int, db: Session = Depends(get_db)):
+def delete_product(entity_id: int, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
     SERVICES["products"].delete(db, entity_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -99,7 +99,7 @@ def register_generic_routes(path: str, service_key: str, create_schema, read_sch
         return _list_response(service, db, page, page_size, sort_by, sort_order, q)
 
     @router.post(path, response_model=read_schema, status_code=status.HTTP_201_CREATED)
-    def create_entity(payload: create_schema, db: Session = Depends(get_db)):
+    def create_entity(payload: create_schema, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
         return service.create(db, payload.model_dump())
 
     @router.get(f"{path}/{{entity_id}}", response_model=read_schema)
@@ -107,11 +107,11 @@ def register_generic_routes(path: str, service_key: str, create_schema, read_sch
         return service.get(db, entity_id)
 
     @router.put(f"{path}/{{entity_id}}", response_model=read_schema)
-    def update_entity(entity_id: int, payload: update_schema, db: Session = Depends(get_db)):
+    def update_entity(entity_id: int, payload: update_schema, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
         return service.update(db, entity_id, payload.model_dump(exclude_unset=True))
 
     @router.delete(f"{path}/{{entity_id}}", status_code=status.HTTP_204_NO_CONTENT)
-    def delete_entity(entity_id: int, db: Session = Depends(get_db)):
+    def delete_entity(entity_id: int, db: Session = Depends(get_db), _=Depends(require_roles("admin"))):
         service.delete(db, entity_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 

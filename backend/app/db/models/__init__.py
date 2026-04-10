@@ -1,4 +1,5 @@
 from app.db.models.audit import SourceImportLog, ValidationError
+from app.db.models.auth import AppUser
 from app.db.models.engine import CubicationCandidate, CubicationResult, CubicationRun, CubicationRunItem
 from app.db.models.master import (
     Customer,
@@ -31,4 +32,5 @@ __all__ = [
     "CubicationResult",
     "SourceImportLog",
     "ValidationError",
+    "AppUser",
 ]

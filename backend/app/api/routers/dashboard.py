@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_db, require_roles
 from app.schemas.dashboard import DashboardSummary, RecentImport, RecentRun, RecommendationStatusBreakdown
 from app.services.dashboard import get_dashboard_summary, recent_imports, recent_runs, recommendation_status_breakdown
 
-router = APIRouter(prefix="/dashboard")
+router = APIRouter(prefix="/dashboard", dependencies=[Depends(require_roles("admin", "planner", "analyst"))])
 
 
 @router.get("/summary", response_model=DashboardSummary)

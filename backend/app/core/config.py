@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     cors_origins: list[str] = ["*"]
 
+    jwt_secret_key: str = "change-me-stage6"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 480
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
     @field_validator("cors_origins", mode="before")
