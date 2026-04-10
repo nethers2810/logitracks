@@ -3,10 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LogiTracks Frontend Placeholder</title>
+    <title>LogiTracks Internal Pilot</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; }
+      header { padding: 12px 20px; background: #0e2a47; color: #fff; display: flex; justify-content: space-between; }
+      main { padding: 20px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+      .hidden { display: none; }
+      nav button { margin-right: 8px; }
+    </style>
   </head>
   <body>
-    <h1>LogiTracks Frontend Placeholder</h1>
-    <p>Stage 1 backend and database foundation is ready.</p>
+    <header>
+      <div><strong>LogiTracks</strong> — Stage 6 pilot</div>
+      <div>
+        <span id="current-user">Current user: (not signed in)</span>
+        <button id="logout-btn" class="hidden">Logout</button>
+      </div>
+    </header>
+    <main>
+      <section id="login-view" class="card">
+        <h2>Login</h2>
+        <form id="login-form">
+          <input id="email" type="email" placeholder="email" required />
+          <input id="password" type="password" placeholder="password" required />
+          <button type="submit">Sign in</button>
+        </form>
+        <p id="login-error" style="color: #b00020"></p>
+      </section>
+
+      <section id="app-view" class="hidden">
+        <nav class="card">
+          <button data-role="admin">Master Data Management</button>
+          <button data-role="planner">SAP Import + Engine</button>
+          <button data-role="analyst">Dashboard Results</button>
+        </nav>
+        <div id="role-message" class="card"></div>
+      </section>
+    </main>
+
+    <script>
+      const API_BASE = window.LOGITRACKS_API_BASE || "http://localhost:8000/api";
+      const loginView = document.getElementById("login-view");
+      const appView = document.getElementById("app-view");
+      const loginForm = document.getElementById("login-form");
+      const loginError = document.getElementById("login-error");
+      const currentUserEl = document.getElementById("current-user");
+      const logoutBtn = document.getElementById("logout-btn");
+      const roleMessage = document.getElementById("role-message");
+
+      const roleCapabilities = {
+        admin: "You can manage all master data and full operational workflows.",
+        planner: "You can import SAP data, run cubication engine, and review recommendations.",
+        analyst: "You can view dashboards and cubication results.",
+      };
+
+      function saveSession(data) {
+        localStorage.setItem("logitracks_token", data.access_token);
+        localStorage.setItem("logitracks_user", JSON.stringify(data.user));
+      }
+
+      function clearSession() {
+        localStorage.removeItem("logitracks_token");
+        localStorage.removeItem("logitracks_user");
+      }
+
+      function getSessionUser() {
+        const raw = localStorage.getItem("logitracks_user");
+        return raw ? JSON.parse(raw) : null;
+      }
+
+      function applyRoleUI() {
+        const user = getSessionUser();
+        if (!user) {
+          loginView.classList.remove("hidden");
+          appView.classList.add("hidden");
+          logoutBtn.classList.add("hidden");
+          currentUserEl.textContent = "Current user: (not signed in)";
+          return;
+        }
+
+        loginView.classList.add("hidden");
+        appView.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+        currentUserEl.textContent = `Current user: ${user.full_name} (${user.role})`;
+        roleMessage.textContent = roleCapabilities[user.role] || "Unknown role.";
+
+        document.querySelectorAll("[data-role]").forEach((button) => {
+          button.disabled = button.dataset.role !== user.role && user.role !== "admin";
+        });
+      }
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        loginError.textContent = "";
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          if (!response.ok) {
+            throw new Error("Invalid email or password");
+          }
+          const data = await response.json();
+          saveSession(data);
+          applyRoleUI();
+        } catch (error) {
+          loginError.textContent = error.message;
+        }
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        clearSession();
+        applyRoleUI();
+      });
+
+      applyRoleUI();
+    </script>
   </body>
 </html>

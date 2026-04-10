@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -25,7 +23,8 @@ services:
     environment:
       APP_NAME: LogiTracks API
       APP_ENV: development
-      DATABASE_URL: postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks
+      DATABASE_URL: ${BACKEND_DATABASE_URL:-postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks}
+      JWT_SECRET_KEY: ${BACKEND_JWT_SECRET_KEY:-change-me-stage6}
     ports:
       - "8000:8000"
     depends_on:
