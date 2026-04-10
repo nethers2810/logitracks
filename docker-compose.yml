@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: logitracks-postgres
+    environment:
+      POSTGRES_DB: logitracks
+      POSTGRES_USER: logitracks
+      POSTGRES_PASSWORD: logitracks
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logitracks -d logitracks"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: logitracks-backend
+    environment:
+      APP_NAME: LogiTracks API
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: logitracks-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

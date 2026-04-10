@@ -1,3 +1,11 @@
+# LogiTracks Monorepo
+
+Stage 1 scaffold includes:
+
+- `backend/`: FastAPI + SQLAlchemy + Alembic
+- `frontend/`: placeholder static container
+- `infra/`: infrastructure folder placeholder
+- `docs/`: documentation folder placeholder
 # Smart Cubication Engine (MVP)
 
 This repository now contains the first cut for:
@@ -17,6 +25,7 @@ This repository now contains the first cut for:
 ## Quick start
 
 ```bash
+docker compose up --build
 python seeders/seed_sample_orders.py
 python -m src.main
 ```
