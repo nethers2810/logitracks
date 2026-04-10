@@ -181,3 +181,26 @@ class CustomerDeliveryConstraint(Base):
     road_access_notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class VendorLaneAllocation(Base):
+    __tablename__ = "vendor_lane_allocation"
+    __table_args__ = (
+        Index("ix_master_vendor_lane_allocation_customer_code", "customer_code"),
+        Index("ix_master_vendor_lane_allocation_truck_type_id", "truck_type_id"),
+        {"schema": "master"},
+    )
+
+    vendor_lane_allocation_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ship_to_code: Mapped[str | None] = mapped_column(String(40))
+    customer_code: Mapped[str | None] = mapped_column(String(40))
+    city: Mapped[str | None] = mapped_column(String(120))
+    zone: Mapped[str | None] = mapped_column(String(120))
+    region: Mapped[str | None] = mapped_column(String(120))
+    route_code: Mapped[str | None] = mapped_column(String(80))
+    truck_type_id: Mapped[int] = mapped_column(ForeignKey("master.truck_type.truck_type_id"), nullable=False)
+    priority_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
