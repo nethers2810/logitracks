@@ -9,6 +9,7 @@ from app.db.models.master import (
     StackingRule,
     TruckAxlePolicy,
     TruckType,
+    VendorLaneAllocation,
 )
 from app.db.models.ops import OrderHeader, OrderItem
 
@@ -19,6 +20,7 @@ __all__ = [
     "ProductStackingMap",
     "TruckType",
     "TruckAxlePolicy",
+    "VendorLaneAllocation",
     "Customer",
     "CustomerDeliveryConstraint",
     "OrderHeader",
