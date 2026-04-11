@@ -22,7 +22,7 @@ engine-demo:
 	python -m seeders.engine_demo
 
 test:
-	pytest backend/tests frontend/tests -q
+	PYTHONPATH=. pytest tests -q
 
 check:
 	python -m compileall app
