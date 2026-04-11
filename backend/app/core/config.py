@@ -1,5 +1,5 @@
 import json
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -22,14 +22,16 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        enable_decoding=False,
     )
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+    def parse_cors_origins(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+
         if isinstance(value, list):
-            return [item.strip() for item in value if item and item.strip()]
+            return [str(item).strip() for item in value if str(item).strip()]
 
         if isinstance(value, str):
             raw = value.strip()
@@ -37,14 +39,19 @@ class Settings(BaseSettings):
                 return []
 
             if raw.startswith("["):
-                parsed = json.loads(raw)
-                if isinstance(parsed, list):
-                    return [str(item).strip() for item in parsed if str(item).strip()]
-                raise ValueError("CORS_ORIGINS JSON value must be a list")
+                try:
+                    parsed = json.loads(raw)
+                except json.JSONDecodeError as exc:
+                    raise ValueError("CORS_ORIGINS JSON value must be a valid JSON array") from exc
+
+                if not isinstance(parsed, list):
+                    raise ValueError("CORS_ORIGINS JSON value must be a list")
+
+                return [str(item).strip() for item in parsed if str(item).strip()]
 
             return [item.strip() for item in raw.split(",") if item.strip()]
 
-        return []
+        raise ValueError("CORS_ORIGINS must be a list or string")
 
 
 settings = Settings()
