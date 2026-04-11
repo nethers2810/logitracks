@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken } from './auth';
 
 const TOKEN_KEY = 'logitracks.token';
 const USER_KEY = 'logitracks.user';

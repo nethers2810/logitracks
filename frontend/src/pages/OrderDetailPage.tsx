@@ -5,6 +5,7 @@ import { SummaryCard } from '../components/SummaryCard';
 import { useOrderDetail } from '../hooks/useApi';
 import { api } from '../lib/api';
 import { QueryBlock } from './shared';
+import { api } from '../lib/api';
 
 export function OrderDetailPage() {
   const { orderId } = useParams();

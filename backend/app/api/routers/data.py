@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.db.models.engine import CubicationCandidate, CubicationResult, CubicationRun, CubicationRunItem
 from app.db.session import get_db
 
-router = APIRouter()
 
 
 def _list(db: Session, sql: str, params: dict | None = None) -> list[dict]:
@@ -49,9 +48,11 @@ def products(db: Session = Depends(get_db)) -> list[dict]:
     return _list(db, 'SELECT product_id, sku_code, product_name, category_name, subcategory_name, base_uom, gross_weight_kg, volume_m3 FROM master.product ORDER BY product_id DESC LIMIT 500')
 
 
+
 @router.get('/truck-types')
 def truck_types(db: Session = Depends(get_db)) -> list[dict]:
     return _list(db, 'SELECT truck_type_id, truck_code, truck_name, max_payload_kg, cargo_volume_m3, truck_group FROM master.truck_type ORDER BY truck_type_id DESC')
+
 
 
 @router.get('/stacking-rules')
@@ -59,9 +60,11 @@ def stacking_rules(db: Session = Depends(get_db)) -> list[dict]:
     return _list(db, 'SELECT stacking_rule_id, rule_code, category_name, subcategory_name, max_stack_layer, is_active FROM master.stacking_rule ORDER BY stacking_rule_id DESC')
 
 
+
 @router.get('/customers')
 def customers(db: Session = Depends(get_db)) -> list[dict]:
     return _list(db, 'SELECT customer_id, customer_code, customer_name, city, zone, region FROM master.customer ORDER BY customer_id DESC')
+
 
 
 @router.get('/vendor-allocations')
@@ -90,7 +93,8 @@ def orders(db: Session = Depends(get_db)) -> list[dict]:
 @router.get('/orders/{order_id}')
 def order_detail(order_id: int, db: Session = Depends(get_db)) -> dict:
     header = db.execute(text("""
-      SELECT oh.order_id, oh.order_no, c.customer_name, oh.status, oh.source_order_type, oh.source_reference_no
+      SELECT oh.order_id, oh.order_no, c.customer_name, oh.status, oh.source_order_type, oh.source_reference_no,
+             (SELECT r.run_id FROM engine.cubication_run r WHERE r.order_id=oh.order_id ORDER BY r.run_id DESC LIMIT 1) AS latest_run_id
       FROM ops.order_header oh LEFT JOIN master.customer c ON c.customer_id=oh.customer_id WHERE oh.order_id=:id
     """), {'id': order_id}).mappings().first()
     if not header:
@@ -254,6 +258,13 @@ def run_simulation(order_id: int, db: Session = Depends(get_db)) -> dict:
     db.commit()
 
     return {'ok': True, 'run_id': run.run_id, 'order_id': order_id, 'recommendation_status': status}
+
+
+
+@router.post('/orders/{order_id}/simulate')
+def simulate_order(order_id: int, db: Session = Depends(get_db)) -> dict:
+    run = run_order_simulation(db, order_id)
+    return {"ok": True, "run_id": run.run_id}
 
 
 @router.get('/simulation-runs/{run_id}')

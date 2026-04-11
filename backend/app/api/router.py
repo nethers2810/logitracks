@@ -10,6 +10,7 @@ from app.api.routers.orders import router as orders_router
 api_router = APIRouter()
 api_router.include_router(health_router, tags=["health"])
 api_router.include_router(auth_router, tags=["auth"])
+api_router.include_router(data_router, tags=["data"])
 api_router.include_router(master_router, tags=["master"])
 api_router.include_router(orders_router, tags=["orders"])
 api_router.include_router(dashboard_router, tags=["dashboard"])

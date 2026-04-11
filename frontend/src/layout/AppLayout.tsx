@@ -37,6 +37,7 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
+        <button onClick={logout} className="mt-4 w-full rounded border border-slate-300 px-3 py-2 text-sm">Sign out</button>
       </aside>
       <main className="flex-1 p-6"><Outlet /></main>
     </div>
