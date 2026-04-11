@@ -11,12 +11,19 @@ import { OrderListPage } from '../pages/OrderListPage';
 import { OrderDetailPage } from '../pages/OrderDetailPage';
 import { SimulationPage } from '../pages/SimulationPage';
 import { ImportCenterPage } from '../pages/ImportCenterPage';
+import { ProtectedRoute } from './ProtectedRoute';
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<AppLayout />}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/products" element={<ProductPage />} />
