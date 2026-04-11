@@ -33,8 +33,15 @@ export const authStore = {
   },
 };
 
+const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim();
+const normalizedBase = configuredBase
+  ? configuredBase.replace(/\/$/, '').endsWith('/api')
+    ? configuredBase.replace(/\/$/, '')
+    : `${configuredBase.replace(/\/$/, '')}/api`
+  : '/api';
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  baseURL: normalizedBase,
 });
 
 api.interceptors.request.use((config) => {

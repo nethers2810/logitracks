@@ -28,6 +28,7 @@ services:
       PYTHONPATH: /app
       DATABASE_URL: ${BACKEND_DATABASE_URL:-postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks}
       JWT_SECRET_KEY: ${BACKEND_JWT_SECRET_KEY:-change-me-stage6}
+      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000"]}
     ports:
       - "8000:8000"
     depends_on:

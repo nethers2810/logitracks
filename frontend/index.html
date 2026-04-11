@@ -44,13 +44,16 @@
 
     <script>
       const configuredApiBase = window.LOGITRACKS_API_BASE?.trim();
-      const apiCandidates = [
-        configuredApiBase,
-        "/api",
-        `${window.location.protocol}//${window.location.hostname}:8000/api`,
-      ]
-        .filter(Boolean)
-        .map((base) => base.replace(/\/$/, ""));
+
+      function normalizeApiBase(base) {
+        if (!base) return null;
+        const trimmed = base.trim().replace(/\/$/, "");
+        if (!trimmed) return null;
+        if (trimmed === "/api" || trimmed.endsWith("/api")) return trimmed;
+        return `${trimmed}/api`;
+      }
+
+      const apiBase = normalizeApiBase(configuredApiBase) || "/api";
       const loginView = document.getElementById("login-view");
       const appView = document.getElementById("app-view");
       const loginForm = document.getElementById("login-form");
@@ -108,28 +111,14 @@
         const password = document.getElementById("password").value;
 
         try {
-          let response = null;
-          for (const apiBase of [...new Set(apiCandidates)]) {
-            try {
-              const attempt = await fetch(`${apiBase}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-              });
+          const response = await fetch(`${apiBase}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
 
-              if (attempt.status === 404) {
-                continue;
-              }
-
-              response = attempt;
-              break;
-            } catch (networkError) {
-              continue;
-            }
-          }
-
-          if (!response) {
-            throw new Error("Unable to reach authentication service");
+          if (response.status === 404) {
+            throw new Error("Authentication endpoint not found. Verify API base URL and reverse proxy configuration.");
           }
 
           if (!response.ok) {
@@ -140,7 +129,7 @@
           saveSession(data);
           applyRoleUI();
         } catch (error) {
-          loginError.textContent = error.message;
+          loginError.textContent = error instanceof Error ? error.message : "Unable to reach authentication service";
         }
       });
 
