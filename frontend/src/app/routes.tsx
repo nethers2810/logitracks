@@ -1,7 +1,5 @@
-import type { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../layout/AppLayout';
-import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { ProductPage } from '../pages/ProductPage';
 import { TruckTypePage } from '../pages/TruckTypePage';
@@ -12,17 +10,11 @@ import { OrderListPage } from '../pages/OrderListPage';
 import { OrderDetailPage } from '../pages/OrderDetailPage';
 import { SimulationPage } from '../pages/SimulationPage';
 import { ImportCenterPage } from '../pages/ImportCenterPage';
-import { authStore } from '../lib/api';
-
-function Protected({ children }: { children: ReactElement }) {
-  return authStore.getToken() ? children : <Navigate to="/login" replace />;
-}
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<Protected><AppLayout /></Protected>}>
+      <Route element={<AppLayout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/products" element={<ProductPage />} />
@@ -35,6 +27,7 @@ export function AppRoutes() {
         <Route path="/simulation/:runId" element={<SimulationPage />} />
         <Route path="/imports" element={<ImportCenterPage />} />
       </Route>
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

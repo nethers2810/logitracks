@@ -1,19 +1,20 @@
-# LogiTracks Backend (Stage 6)
+# LogiTracks Backend (Internal Pilot / No-Auth Mode)
 
-FastAPI + SQLAlchemy backend with authentication, role-based access, master/ops/engine APIs, and demo seeding for internal pilot use.
+FastAPI + SQLAlchemy backend for master data, operations, import workflow, and Smart Cubication simulation.
 
-## Roles
+## Pilot mode behavior
 
-- `admin`: full master data management + operational actions.
-- `planner`: import SAP data, run/review engine outputs.
-- `analyst`: dashboard and result visibility.
+- Authentication enforcement is disabled for internal pilot routes.
+- Core business endpoints are available directly without bearer tokens.
+- `/api/auth/*` routes may remain available, but are not required for normal pilot flow.
 
-## New Stage 6 API additions
+## Core APIs used by pilot UI
 
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `GET /api/health/live`
-- `GET /api/health/ready`
+- Dashboard: `/api/dashboard/*`
+- Master data: `/api/master/*`
+- Orders + detail: `/api/orders/*`
+- Simulation flow: `/api/data/orders/{order_id}/simulate`, `/api/data/simulation-runs/{run_id}`
+- Imports: `/api/data/imports/*`
 
 ## Setup
 
