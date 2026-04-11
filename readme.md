@@ -25,6 +25,12 @@ docker compose version
 
 From repository root (`/workspace/logitracks`):
 
+### Which `.env` file is used?
+
+- **Docker Compose workflow (commands run from repo root):** uses **root `.env`** (`/workspace/logitracks/.env`).
+- **Local backend workflow (`cd backend` + `make run`):** uses **`backend/.env`**.
+- For `docker compose run --rm backend ...`, only root `.env` / shell env are used by Compose for service env injection.
+
 ### Step A — Prepare environment file
 
 ```bash
@@ -106,6 +112,7 @@ Inside Compose, backend should connect to PostgreSQL using hostname:
 - `postgres` (the Compose service name)
 
 If `BACKEND_DATABASE_URL` is set in your shell/CI to another host (for example `db`, `localhost`, or a stale value), it overrides the Compose default and breaks name resolution.
+Also, changing only `backend/.env` will not fix Docker Compose runs; for Docker, update root `.env` (or unset conflicting shell vars).
 
 ### Fix checklist
 
