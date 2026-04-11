@@ -43,7 +43,10 @@
     </main>
 
     <script>
-      const API_BASE = window.LOGITRACKS_API_BASE || "http://localhost:8000/api";
+      const configuredApiBase = window.LOGITRACKS_API_BASE?.trim();
+      const API_BASE = (configuredApiBase && configuredApiBase.length > 0)
+        ? configuredApiBase.replace(/\/$/, "")
+        : `${window.location.protocol}//${window.location.hostname}:8000/api`;
       const loginView = document.getElementById("login-view");
       const appView = document.getElementById("app-view");
       const loginForm = document.getElementById("login-form");
@@ -124,10 +127,5 @@
 
       applyRoleUI();
     </script>
-    <title>Smart Cubication Engine</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
