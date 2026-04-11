@@ -57,11 +57,21 @@ docker compose logs postgres --tail=50
 docker compose logs backend --tail=100
 ```
 
-### Step D — Open the app
+### Step D — Open the app (internal pilot / no-auth mode)
 
 - Backend API docs: `http://localhost:8000/docs`
 - Backend health: `http://localhost:8000/api/health`
-- Frontend UI: `http://localhost:3000`
+- Frontend UI: `http://localhost:3000` (opens directly to dashboard; no login required)
+
+### Step E — Verify core pilot workflow
+
+1. Open `http://localhost:3000/dashboard` and confirm dashboard cards/charts render.
+2. Open `http://localhost:3000/orders` and confirm order list loads.
+3. Open any order detail (`http://localhost:3000/orders/<order_id>`).
+4. Click **Run Smart Cubication** on order detail.
+5. Open resulting simulation page (`http://localhost:3000/simulation/<run_id>`) and verify candidate trucks and recommendation result are shown.
+
+This repository is currently configured for **internal pilot no-auth mode** so business workflow validation is not blocked by login/session failures.
 
 ---
 
@@ -75,19 +85,11 @@ Run all commands from repository root.
 docker compose run --rm backend alembic upgrade head
 ```
 
-### Seed demo users and demo data
+### Seed demo data
 
 ```bash
 docker compose run --rm backend python -m seeders.seed_demo_data
 ```
-
-Demo users:
-
-- `admin@logitracks.local` / `admin123`
-- `planner@logitracks.local` / `planner123`
-- `analyst@logitracks.local` / `analyst123`
-
-> Change demo credentials before any real deployment.
 
 ---
 
