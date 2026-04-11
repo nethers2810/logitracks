@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.models.engine import CubicationCandidate, CubicationResult, CubicationRun, CubicationRunItem
 from app.db.session import get_db
 
+router = APIRouter()
 
 
 def _list(db: Session, sql: str, params: dict | None = None) -> list[dict]:

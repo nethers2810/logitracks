@@ -93,7 +93,52 @@ docker compose run --rm backend python -m seeders.seed_demo_data
 
 ---
 
-## 4) Most common issue: `Temporary failure in name resolution`
+
+## 4) Final troubleshooting: dashboard blank (`/dashboard`)
+
+Jika halaman `http://localhost:3000/dashboard` kosong/blank, lakukan langkah final berikut secara berurutan dari root repo.
+
+### Step 1 — Pastikan pakai kode terbaru (fix router legacy)
+
+```bash
+git pull
+```
+
+Fix terbaru memastikan `backend/app/api/routers/data.py` memiliki `router = APIRouter()` sehingga endpoint legacy `/api/dashboard` terdaftar dengan benar.
+
+### Step 2 — Rebuild service backend & frontend
+
+```bash
+docker compose build backend frontend
+```
+
+### Step 3 — Restart stack
+
+```bash
+docker compose down --remove-orphans
+docker compose up -d
+```
+
+### Step 4 — Verifikasi endpoint dashboard dari backend
+
+```bash
+curl -sS http://localhost:8000/api/dashboard | head
+```
+
+Expected: JSON berisi `summary`, `recentImports`, `recentRuns`, dan `recommendationBreakdown`.
+
+### Step 5 — Cek log jika masih blank
+
+```bash
+docker compose logs backend --tail=200
+docker compose logs frontend --tail=200
+```
+
+Jika masih bermasalah, kirimkan output 2 command log di atas untuk analisa lanjutan.
+
+---
+
+## 5) Most common issue: `Temporary failure in name resolution`
 
 If you get this error while running:
 
@@ -169,7 +214,7 @@ If this command returns an IP, Docker DNS is working.
 
 ---
 
-## 5) Alternative: run backend locally (without Docker backend)
+## 6) Alternative: run backend locally (without Docker backend)
 
 You can run only PostgreSQL in Docker and execute backend in local Python.
 
@@ -209,7 +254,7 @@ Backend docs: `http://localhost:8000/docs`
 
 ---
 
-## 6) Frontend local serving (optional)
+## 7) Frontend local serving (optional)
 
 If you want static local serving from source:
 
@@ -222,7 +267,7 @@ Open: `http://localhost:8080`
 
 ---
 
-## 7) Handy operations
+## 8) Handy operations
 
 From repository root:
 
@@ -252,7 +297,7 @@ make test
 
 ---
 
-## 8) Production notes
+## 9) Production notes
 
 - Inject secrets (`JWT_SECRET_KEY`, DB creds) from a secure secret manager.
 - Keep `alembic upgrade head` in startup/CI before app boot.
