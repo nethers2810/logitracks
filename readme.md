@@ -25,6 +25,12 @@ docker compose version
 
 From repository root (`/workspace/logitracks`):
 
+### Which `.env` file is used?
+
+- **Docker Compose workflow (commands run from repo root):** uses **root `.env`** (`/workspace/logitracks/.env`).
+- **Local backend workflow (`cd backend` + `make run`):** uses **`backend/.env`**.
+- For `docker compose run --rm backend ...`, only root `.env` / shell env are used by Compose for service env injection.
+
 ### Step A — Prepare environment file
 
 ```bash
@@ -106,29 +112,44 @@ Inside Compose, backend should connect to PostgreSQL using hostname:
 - `postgres` (the Compose service name)
 
 If `BACKEND_DATABASE_URL` is set in your shell/CI to another host (for example `db`, `localhost`, or a stale value), it overrides the Compose default and breaks name resolution.
+Also, changing only `backend/.env` will not fix Docker Compose runs; for Docker, update root `.env` (or unset conflicting shell vars).
 
 ### Fix checklist
 
-1. Inspect effective backend DB URL:
+1. Rebuild backend image after pulling migration changes:
+
+```bash
+docker compose build backend
+```
+
+`docker compose run --rm backend ...` uses code baked into the backend image. A stale image can still have old Alembic revisions.
+
+Quick verification (should print a line containing `extra="ignore"`):
+
+```bash
+docker compose run --rm backend sh -lc "grep -n 'extra=\"ignore\"' app/core/config.py"
+```
+
+2. Inspect effective backend DB URL:
 
 ```bash
 docker compose config | sed -n '/backend:/,/^[^ ]/p'
 ```
 
-2. Ensure URL host is `postgres`:
+3. Ensure URL host is `postgres`:
 
 ```text
 postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks
 ```
 
-3. If your shell has an override, clear it and retry:
+4. If your shell has an override, clear it and retry:
 
 ```bash
 unset BACKEND_DATABASE_URL
 docker compose run --rm backend alembic upgrade head
 ```
 
-4. If needed, recreate containers/networks:
+5. If needed, recreate containers/networks:
 
 ```bash
 docker compose down --remove-orphans
@@ -136,7 +157,7 @@ docker compose up -d postgres
 docker compose run --rm backend alembic upgrade head
 ```
 
-5. Validate DNS from backend container:
+6. Validate DNS from backend container:
 
 ```bash
 docker compose run --rm backend getent hosts postgres
