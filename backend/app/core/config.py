@@ -1,6 +1,8 @@
 import json
+from typing import Annotated
+
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://logitracks:logitracks@localhost:5432/logitracks"
 
     log_level: str = "INFO"
-    cors_origins: list[str] = ["*"]
+    cors_origins: Annotated[list[str], NoDecode] = ["*"]
 
     jwt_secret_key: str = "change-me-stage6"
     jwt_algorithm: str = "HS256"
