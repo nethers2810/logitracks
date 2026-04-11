@@ -1,40 +1,162 @@
-# LogiTracks Monorepo — Stage 6 (Internal Pilot Hardening)
+# LogiTracks Monorepo
 
-This repository now includes Stage 6 hardening for realistic internal use:
-- JWT authentication + role-based access (`admin`, `planner`, `analyst`),
-- demo seed workflow (master data → SAP order import → cubication result),
-- backend and frontend smoke tests,
-- deployment-oriented runbook and operational commands.
+This repository contains the LogiTracks backend API, frontend UI, and supporting data/engine modules.
 
-## Architecture summary
+---
 
-- **Backend (`backend/`)**: FastAPI, SQLAlchemy, Alembic, JWT auth, role-guarded APIs.
-- **Data domains**:
-  - `master.*` for products/trucks/rules/customers/lanes,
-  - `ops.*` for imported orders,
-  - `engine.*` for cubication runs/results,
-  - `public.app_user` for internal application users.
-- **Frontend (`frontend/`)**: simple internal web UI with functional login, logout, current-user header, and role-aware UI controls.
+## 1) Prerequisites
 
-## Demo user credentials
+Install these before starting:
 
-Seeded by `python -m seeders.seed_demo_data`:
+- Docker + Docker Compose v2 (`docker compose version`)
+- (Optional for local non-Docker backend) Python 3.12+
+- (Optional) `make`
+
+Verify Docker is running:
+
+```bash
+docker version
+docker compose version
+```
+
+---
+
+## 2) Quick start (recommended: full Docker)
+
+From repository root (`/workspace/logitracks`):
+
+### Step A — Prepare environment file
+
+```bash
+cp .env.example .env
+```
+
+### Step B — Build and start services
+
+```bash
+docker compose up -d --build
+```
+
+This starts:
+
+- `postgres` on `localhost:5432`
+- `backend` on `http://localhost:8000`
+- `frontend` on `http://localhost:3000`
+
+### Step C — Confirm services are healthy
+
+```bash
+docker compose ps
+docker compose logs postgres --tail=50
+docker compose logs backend --tail=100
+```
+
+### Step D — Open the app
+
+- Backend API docs: `http://localhost:8000/docs`
+- Backend health: `http://localhost:8000/api/health`
+- Frontend UI: `http://localhost:3000`
+
+---
+
+## 3) Database migrations and seeds (Docker workflow)
+
+Run all commands from repository root.
+
+### Run latest migrations
+
+```bash
+docker compose run --rm backend alembic upgrade head
+```
+
+### Seed demo users and demo data
+
+```bash
+docker compose run --rm backend python -m seeders.seed_demo_data
+```
+
+Demo users:
 
 - `admin@logitracks.local` / `admin123`
 - `planner@logitracks.local` / `planner123`
 - `analyst@logitracks.local` / `analyst123`
 
-> Change all demo credentials before production use.
+> Change demo credentials before any real deployment.
 
-## Local setup (sample)
+---
 
-### 1) Start infrastructure
+## 4) Most common issue: `Temporary failure in name resolution`
+
+If you get this error while running:
+
+```bash
+docker compose run --rm backend alembic upgrade head
+```
+
+and see:
+
+- `psycopg.OperationalError: [Errno -3] Temporary failure in name resolution`
+
+it usually means the DB host in `DATABASE_URL` is not resolvable **inside** Docker.
+
+### Why this happens
+
+Inside Compose, backend should connect to PostgreSQL using hostname:
+
+- `postgres` (the Compose service name)
+
+If `BACKEND_DATABASE_URL` is set in your shell/CI to another host (for example `db`, `localhost`, or a stale value), it overrides the Compose default and breaks name resolution.
+
+### Fix checklist
+
+1. Inspect effective backend DB URL:
+
+```bash
+docker compose config | sed -n '/backend:/,/^[^ ]/p'
+```
+
+2. Ensure URL host is `postgres`:
+
+```text
+postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks
+```
+
+3. If your shell has an override, clear it and retry:
+
+```bash
+unset BACKEND_DATABASE_URL
+docker compose run --rm backend alembic upgrade head
+```
+
+4. If needed, recreate containers/networks:
+
+```bash
+docker compose down --remove-orphans
+docker compose up -d postgres
+docker compose run --rm backend alembic upgrade head
+```
+
+5. Validate DNS from backend container:
+
+```bash
+docker compose run --rm backend getent hosts postgres
+```
+
+If this command returns an IP, Docker DNS is working.
+
+---
+
+## 5) Alternative: run backend locally (without Docker backend)
+
+You can run only PostgreSQL in Docker and execute backend in local Python.
+
+### Step A — Start DB only
 
 ```bash
 docker compose up -d postgres
 ```
 
-### 2) Backend setup
+### Step B — Setup backend
 
 ```bash
 cd backend
@@ -42,50 +164,75 @@ cp .env.example .env
 python -m venv .venv
 source .venv/bin/activate
 make install
+```
+
+### Step C — Configure DB URL in `backend/.env`
+
+For local backend process, use localhost:
+
+```env
+DATABASE_URL=postgresql+psycopg://logitracks:logitracks@localhost:5432/logitracks
+```
+
+### Step D — Migrate, seed, run
+
+```bash
 make migrate
 make seed-demo
 make run
 ```
 
-### 3) Frontend setup (simple static serving)
+Backend docs: `http://localhost:8000/docs`
+
+---
+
+## 6) Frontend local serving (optional)
+
+If you want static local serving from source:
 
 ```bash
 cd frontend
 python -m http.server 8080
 ```
 
-Open:
-- API docs: `http://localhost:8000/docs`
-- Frontend: `http://localhost:8080`
+Open: `http://localhost:8080`
 
-## Stage 6 workflow commands
+---
 
-Run from `backend/`:
+## 7) Handy operations
 
-- **DB migration run command**: `make migrate`
-- **Seed command**: `make seed-demo`
-- **Import demo command**: `make import-demo`
-- **Engine demo command**: `make engine-demo`
-- **Run tests**: `make test`
+From repository root:
 
-## API healthchecks
+```bash
+# Start everything
+docker compose up -d --build
 
-- `GET /api/health`
-- `GET /api/health/live`
-- `GET /api/health/ready`
+# Stop everything
+docker compose down
 
-## Docker Compose production notes
+# Follow backend logs
+docker compose logs -f backend
 
-- Use environment-specific secrets (`JWT_SECRET_KEY`, DB password) via secret manager or env-injection.
-- Use a reverse proxy/TLS terminator in front of backend/frontend.
-- Remove demo credentials and run user bootstrap through secure internal IAM process.
-- Keep `alembic upgrade head` in startup/CI migration step before app boot.
-- Configure DB backups and retention before pilot traffic.
+# Run backend tests in container
+docker compose run --rm backend pytest
+```
 
-## Future enhancements
+From `backend/` (local Python workflow):
 
-- Dimensional cubication,
-- Route optimization,
-- Mixed-load rules,
-- Truck availability calendar,
-- 3D load planning.
+```bash
+make migrate
+make seed-demo
+make import-demo
+make engine-demo
+make test
+```
+
+---
+
+## 8) Production notes
+
+- Inject secrets (`JWT_SECRET_KEY`, DB creds) from a secure secret manager.
+- Keep `alembic upgrade head` in startup/CI before app boot.
+- Run behind reverse proxy + TLS.
+- Remove demo users and bootstrap real users from internal IAM.
+- Configure backups + retention before handling real traffic.
