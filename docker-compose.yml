@@ -19,10 +19,13 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: logitracks-backend
+    working_dir: /app
     environment:
       APP_NAME: LogiTracks API
       APP_ENV: development
+      PYTHONPATH: /app
       DATABASE_URL: ${BACKEND_DATABASE_URL:-postgresql+psycopg://logitracks:logitracks@postgres:5432/logitracks}
       JWT_SECRET_KEY: ${BACKEND_JWT_SECRET_KEY:-change-me-stage6}
     ports:
