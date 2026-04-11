@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = "0003_stage6_auth_and_users"
-down_revision = "0002_stage4_api_extensions"
+down_revision = ("0002_stage4_api_extensions", "0002_vendor_lane_allocation")
 branch_labels = None
 depends_on = None
 
