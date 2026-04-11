@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../layout/AppLayout';
 import { LoginPage } from '../pages/LoginPage';
@@ -11,12 +12,17 @@ import { OrderListPage } from '../pages/OrderListPage';
 import { OrderDetailPage } from '../pages/OrderDetailPage';
 import { SimulationPage } from '../pages/SimulationPage';
 import { ImportCenterPage } from '../pages/ImportCenterPage';
+import { authStore } from '../lib/api';
+
+function Protected({ children }: { children: ReactElement }) {
+  return authStore.getToken() ? children : <Navigate to="/login" replace />;
+}
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<AppLayout />}>
+      <Route element={<Protected><AppLayout /></Protected>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/products" element={<ProductPage />} />
