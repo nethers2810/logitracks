@@ -124,6 +124,12 @@ docker compose build backend
 
 `docker compose run --rm backend ...` uses code baked into the backend image. A stale image can still have old Alembic revisions.
 
+Quick verification (should print a line containing `extra="ignore"`):
+
+```bash
+docker compose run --rm backend sh -lc "grep -n 'extra=\"ignore\"' app/core/config.py"
+```
+
 2. Inspect effective backend DB URL:
 
 ```bash
