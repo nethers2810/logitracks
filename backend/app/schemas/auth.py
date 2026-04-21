@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
@@ -11,14 +11,14 @@ class UserRole(str, Enum):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
 class UserRead(BaseModel):
     user_id: int
     full_name: str
-    email: EmailStr
+    email: str
     role: UserRole
     is_active: bool
     created_at: datetime
